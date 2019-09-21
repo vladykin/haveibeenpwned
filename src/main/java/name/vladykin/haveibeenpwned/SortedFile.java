@@ -81,9 +81,10 @@ public final class SortedFile implements Closeable {
             raf.seek(offset);
             int c = raf.read();
             if (length > 1 && c == '\n') {
-                break;
+                return;
             }
         }
+        raf.seek(offset);
     }
 
 
@@ -92,7 +93,8 @@ public final class SortedFile implements Closeable {
         private final long endOffset;
         private final String text;
 
-        private Line(long startOffset, long endOffset, String text) {
+        // package-private for tests
+        Line(long startOffset, long endOffset, String text) {
             if (startOffset < 0) throw new IllegalArgumentException("got startOffset < 0");
             if (endOffset < 0) throw new IllegalArgumentException("got endOffset < 0");
             if (endOffset <= startOffset) throw new IllegalArgumentException("got endOffset <= startOffset");
@@ -118,6 +120,21 @@ public final class SortedFile implements Closeable {
             return "Line{" + "startOffset=" + startOffset +
                     ", endOffset=" + endOffset +
                     ", text='" + text + "\'}";
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            Line line = (Line) o;
+            return startOffset == line.startOffset &&
+                    endOffset == line.endOffset &&
+                    text.equals(line.text);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(startOffset, endOffset, text);
         }
     }
 }
