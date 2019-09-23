@@ -28,6 +28,10 @@ public final class SortedFile implements Closeable {
         raf.close();
     }
 
+    public Optional<Line> binarySearch(String value) throws IOException {
+        return binarySearch(value, Function.identity(), Comparator.naturalOrder());
+    }
+
     public Optional<Line> binarySearch(String value, Function<String, String> extractor, Comparator<String> comparator) throws IOException {
         Line windowStart = firstLine;
         Line windowEnd = lastLine;
