@@ -14,13 +14,9 @@ public final class SortedFile implements Closeable {
     // TODO: encoding
 
     private final RandomAccessFile raf;
-    private final Line firstLine;
-    private final Line lastLine;
 
     public SortedFile(Path file) throws IOException {
         this.raf = new RandomAccessFile(file.toFile(), "r");
-        this.firstLine = readLineAt(0);
-        this.lastLine = readLineAt(raf.length() - 1);
     }
 
     @Override
@@ -33,8 +29,18 @@ public final class SortedFile implements Closeable {
     }
 
     public Optional<Line> binarySearch(String value, Function<String, String> extractor, Comparator<String> comparator) throws IOException {
-        Line windowStart = firstLine;
-        Line windowEnd = lastLine;
+        if (value.isEmpty()) {
+            throw new IllegalArgumentException("value must not be empty");
+        }
+        if (value.contains("\n") || value.contains("\r")) {
+            throw new IllegalArgumentException("value must not contain line separator");
+        }
+
+        Line windowStart = readLineOrNullAt(0);
+        Line windowEnd = readLineOrNullAt(raf.length() - 1);
+        if (windowStart == null || windowEnd == null) {
+            return Optional.empty(); // file is empty
+        }
         while (isBefore(windowStart, windowEnd)) {
             Line windowMiddle = readLineAt(middleOffset(windowStart, windowEnd));
             String middleValue = extractor.apply(windowMiddle.text());
@@ -65,11 +71,17 @@ public final class SortedFile implements Closeable {
 
 
     private Line readLineAt(long offset) throws IOException {
+        Line line = readLineOrNullAt(offset);
+        Objects.requireNonNull(line, "line is not expected to be null here");
+        return line;
+    }
+
+    private Line readLineOrNullAt(long offset) throws IOException {
         seekToStartOfLine(offset);
         long start = raf.getFilePointer();
         String line = raf.readLine();
         if (line == null) {
-            throw new IllegalStateException("readLine returned null after seekToLineStart, impossible!");
+            return null;
         } else {
             long end = raf.getFilePointer();
             return new Line(start, end, line);

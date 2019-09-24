@@ -46,6 +46,7 @@ class SortedFileTest {
 
     private static Stream<Arguments> testCases() {
         List<List<String>> lineContents = Arrays.asList(
+                Collections.emptyList(),
                 Collections.singletonList("foobar"),
                 Collections.singletonList("a"),
                 Arrays.asList("a", "b"),
