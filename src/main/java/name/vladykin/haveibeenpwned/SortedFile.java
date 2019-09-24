@@ -37,7 +37,7 @@ public final class SortedFile implements Closeable {
         }
 
         Line windowStart = readLineOrNullAt(0);
-        Line windowEnd = readLineOrNullAt(raf.length() - 1);
+        Line windowEnd = readLineOrNullAt(Math.max(raf.length() - 1, 0));
         if (windowStart == null || windowEnd == null) {
             return Optional.empty(); // file is empty
         }
